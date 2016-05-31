@@ -4,12 +4,12 @@ from setuptools import find_packages
 
 setup(
     name='ParallelDownload',
-    version='0.01',
+    version='0.02',
     description='A library to download large files in chunks.',
     author='Halil Ozercan',
     author_email='halilozercan@gmail',
     url='https://github.com/halilozercan/paralleldownload',
-    download_url = 'https://github.com/halilozercan/paralleldownload/tarball/0.1',
+    download_url = 'https://github.com/halilozercan/paralleldownload/tarball/0.02',
     entry_points={
         'console_scripts': [
             'pdownload = ParallelDownload.bin:main',
