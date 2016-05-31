@@ -14,10 +14,10 @@ def download_callback(downloader):
 
 def main():
     if sys.stdin.isatty():
-        downloader = Downloader(sys.argv[1], sys.argv[2], sys.argv[3])
+        downloader = Downloader(sys.argv[1], sys.argv[2], int(sys.argv[3]))
     else:
         argv = sys.stdin.read().split(' ')
-        downloader = Downloader(argv[1], argv[2], argv[3])
+        downloader = Downloader(argv[1], argv[2], int(argv[3]))
 
     downloader.subscribe(download_callback)
 
