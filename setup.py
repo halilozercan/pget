@@ -15,5 +15,6 @@ setup(
             'pdownload = ParallelDownload.bin:main',
         ],
     },
+    install_requires=['requests', 'wheel'],
     packages=find_packages(exclude=("tests", "tests.*")),
 )
