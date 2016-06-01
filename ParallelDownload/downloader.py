@@ -36,30 +36,34 @@ class Downloader:
         self.__started = False
         self.__subs = []
 
+        self.__progress_lock = threading.Lock()
+
         self.thread = threading.Thread(target=self.run)
 
-    # This function registers a callback. Every second, speed thread will also update observers.
+    # This function registers a callback.
     # callable must take at least one argument. (Downloader)
-    def subscribe(self, sub_callable):
-        self.__subs.append(sub_callable)
+    # rate defines the how many kilobytes does it require to fire an update for subscriber.
+    def subscribe(self, sub_callable, rate=1):
+        self.__subs.append([sub_callable, rate])
+
+    def notify_subs(self):
+        for sub in self.__subs:
+            if self.total_downloaded % (sub[1]*1024) == 0:
+                sub[0](self)
 
     # progress: how many bytes have been downloaded.
     # number: which chunk is reporting.
-    def download_callback(self, progress, number):
-
-        self.readable_speed = readable_bytes(self.speed)
-        self.total_downloaded += progress
+    def download_callback(self, progress, chunk):
+        with self.__progress_lock:
+            self.total_downloaded += progress
 
         self.notify_subs()
-
-        # sys.stdout.write("\rDownloading %s [%s] [%s]" %
-        #                 (self.file_name, 100 * (float(self.total_downloaded) / self.total_length), readable_speed))
-        # sys.stdout.flush()
 
     def speed_func(self):
         while not self.__stop:
             time.sleep(1)
             self.speed = self.total_downloaded - self.last_total
+            self.readable_speed = readable_bytes(self.speed)
             self.last_total = self.total_downloaded
 
     def stop(self):
@@ -129,7 +133,3 @@ class Downloader:
                     else:
                         break
                 chunk.file.close()
-
-    def notify_subs(self):
-        for sub in self.__subs:
-            sub(self)

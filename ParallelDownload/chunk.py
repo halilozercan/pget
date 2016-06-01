@@ -35,6 +35,6 @@ class Chunk:
             self.progress += len(part)
             if part and not self.__stop:  # filter out keep-alive new chunks
                 self.file.write(part)
-                self.downloader.download_callback(len(part), self.number)
+                self.downloader.download_callback(len(part), self)
             elif self.__stop:
                 break
