@@ -9,16 +9,23 @@ import requests
 
 from chunk import Chunk
 
-
 def readable_bytes(num, suffix='B'):
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
-            return "%3.1f%s%s" % (num, unit, suffix)
+            return "%3.1f %s%s" % (num, unit, suffix)
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
 class Downloader:
+    # States
+    INIT = 0
+    DOWNLOADING = 1
+    PAUSED = 2
+    MERGING = 3
+    FINISHED = 4
+    STOPPED = 5
+
     def __init__(self, url, file_name, chunk_count):
         self.url = url
         self.file_name = file_name
@@ -32,12 +39,12 @@ class Downloader:
         self.speed = 0
         self.readable_speed = readable_bytes(self.speed)
 
-        self.__stop = False
-        self.__started = False
+        self.__state = Downloader.INIT
         self.__subs = []
 
         self.__progress_lock = threading.Lock()
 
+        self.__async = True
         self.thread = threading.Thread(target=self.run)
 
     # This function registers a callback.
@@ -48,7 +55,7 @@ class Downloader:
 
     def notify_subs(self):
         for sub in self.__subs:
-            if self.total_downloaded % (sub[1]*1024) == 0:
+            if self.total_downloaded % (sub[1] * 1024) == 0:
                 sub[0](self)
 
     # progress: how many bytes have been downloaded.
@@ -60,7 +67,7 @@ class Downloader:
         self.notify_subs()
 
     def speed_func(self):
-        while not self.__stop:
+        while self.__state != Downloader.STOPPED and self.__state != Downloader.MERGING:
             time.sleep(1)
             self.speed = self.total_downloaded - self.last_total
             self.readable_speed = readable_bytes(self.speed)
@@ -69,29 +76,58 @@ class Downloader:
     def stop(self):
         for chunk in self.__chunks:
             chunk.stop()
-        self.__stop = True
+        self.__state = Downloader.STOPPED
 
     def start(self):
-        if self.__started:
-            raise RuntimeError('Download has been already started.')
+        if self.__state != Downloader.INIT:
+            raise RuntimeError('Download has already been started.')
 
         self.thread.start()
 
+    def start_sync(self):
+        if self.__state != Downloader.INIT:
+            raise RuntimeError('Download has already been started.')
+
+        self.run()
+
+    def pause(self):
+        if self.__state == Downloader.INIT:
+            warnings.warn("Download has not been started yet.")
+            return
+
+        for chunk in self.__chunks:
+            chunk.pause()
+
+        self.__state = Downloader.PAUSED
+
+    def resume(self):
+        if self.__state != Downloader.PAUSED:
+            warnings.warn("Resume is not applicable at this stage.")
+            print "Resume is not applicable at this stage."
+            return
+        for chunk in self.__chunks:
+            chunk.resume()
+
+        self.__state = Downloader.DOWNLOADING
+
     def wait_for_finish(self):
-        self.thread.join()
+        if self.__async:
+            self.thread.join()
+        else:
+            warnings.warn('Downloader was set to run as synchronous. This function will not work')
 
     def run(self):
-        self.__started = True
+        self.__state = Downloader.DOWNLOADING
 
         r = requests.get(self.url, stream=True)
         try:
             self.total_length = int(r.headers.get('content-length'))
         except:
-            self.chunk_count = 1
+            self.chunk_count = 0
             warnings.warn('This url does not support parallel downloading. Normal download will continue.',
                           RuntimeWarning)
 
-        if self.chunk_count == 1:
+        if self.chunk_count == 0:
             chunk_file = tempfile.TemporaryFile()
             new_chunk = Chunk(self, self.url, file=chunk_file)
             self.__chunks.append(new_chunk)
@@ -116,9 +152,11 @@ class Downloader:
         speed_thread.start()
 
         for chunk in self.__chunks:
+            while not chunk.is_finished():
+                pass
             chunk.thread.join()
 
-        self.stop()
+        self.__state = Downloader.MERGING
         speed_thread.join()
 
         # time to put together all parts
@@ -133,3 +171,5 @@ class Downloader:
                     else:
                         break
                 chunk.file.close()
+
+        self.__state = Downloader.FINISHED
