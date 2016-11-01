@@ -9,6 +9,7 @@ import requests
 
 from chunk import Chunk
 
+
 def readable_bytes(num, suffix='B'):
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
@@ -48,30 +49,29 @@ class Downloader:
         self.thread = threading.Thread(target=self.run)
 
     # This function registers a callback.
-    # callable must take at least one argument. (Downloader)
-    # rate defines the how many kilobytes does it require to fire an update for subscriber.
+    # sub_callable: must take at least one argument. (Downloader)
+    # rate: defines the amount of kilobytes that should be downloaded in
+    #   a second at least to fire an update for subscriber.
     def subscribe(self, sub_callable, rate=1):
         self.__subs.append([sub_callable, rate])
 
     def notify_subs(self):
         for sub in self.__subs:
-            if self.total_downloaded % (sub[1] * 1024) == 0:
+            if self.speed > (sub[1] * 1024):
                 sub[0](self)
-
-    # progress: how many bytes have been downloaded.
-    # number: which chunk is reporting.
-    def download_callback(self, progress, chunk):
-        with self.__progress_lock:
-            self.total_downloaded += progress
-
-        self.notify_subs()
 
     def speed_func(self):
         while self.__state != Downloader.STOPPED and self.__state != Downloader.MERGING:
             time.sleep(1)
+            self.total_downloaded = 0
+            for chunk in self.__chunks:
+                self.total_downloaded += chunk.progress
+
             self.speed = self.total_downloaded - self.last_total
             self.readable_speed = readable_bytes(self.speed)
             self.last_total = self.total_downloaded
+
+            self.notify_subs()
 
     def stop(self):
         for chunk in self.__chunks:

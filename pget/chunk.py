@@ -60,7 +60,6 @@ class Chunk:
             self.progress += len(part)
             if part and self.__state != Chunk.STOPPED:  # filter out keep-alive new chunks
                 self.file.write(part)
-                self.downloader.download_callback(len(part), self)
                 if self.__state == Chunk.PAUSED:
                     self.__paused_request = r
                     break_flag = True
@@ -71,8 +70,6 @@ class Chunk:
 
         if not break_flag:
             self.__state = Chunk.FINISHED
-
-        self.downloader.download_callback(0, self)
 
     def is_finished(self):
         return self.__state == Chunk.FINISHED
