@@ -6,6 +6,7 @@ import time
 import warnings
 
 import requests
+import shutil
 
 from chunk import Chunk
 
@@ -55,14 +56,21 @@ class Downloader:
     def subscribe(self, sub_callable, rate=1):
         self.__subs.append([sub_callable, rate])
 
-    def notify_subs(self):
+    def notify_subs(self, force=False):
+        if force:
+            self.total_downloaded = 0
+            for chunk in self.__chunks:
+                self.total_downloaded += chunk.progress
+
+            self.speed = self.total_downloaded - self.last_total
+            self.readable_speed = readable_bytes(self.speed)
+            self.last_total = self.total_downloaded
         for sub in self.__subs:
-            if self.speed > (sub[1] * 1024):
+            if self.speed > (sub[1] * 1024) or force:
                 sub[0](self)
 
     def speed_func(self):
         while self.__state != Downloader.STOPPED and self.__state != Downloader.MERGING:
-            time.sleep(1)
             self.total_downloaded = 0
             for chunk in self.__chunks:
                 self.total_downloaded += chunk.progress
@@ -72,6 +80,7 @@ class Downloader:
             self.last_total = self.total_downloaded
 
             self.notify_subs()
+            time.sleep(1)
 
     def stop(self):
         for chunk in self.__chunks:
@@ -112,6 +121,8 @@ class Downloader:
 
     def wait_for_finish(self):
         if self.__async:
+            while self.thread.isAlive():
+                continue
             self.thread.join()
         else:
             warnings.warn('Downloader was set to run as synchronous. This function will not work')
@@ -152,9 +163,13 @@ class Downloader:
         speed_thread.start()
 
         for chunk in self.__chunks:
-            while not chunk.is_finished():
-                pass
             chunk.thread.join()
+
+        if self.__state == Downloader.STOPPED:
+            return
+
+        # Forcefully update subscribers for last time.
+        self.notify_subs(True)
 
         self.__state = Downloader.MERGING
         speed_thread.join()
@@ -165,7 +180,7 @@ class Downloader:
                 # Go to first byte of temporary file
                 chunk.file.seek(0)
                 while True:
-                    readbytes = chunk.file.read(1024)
+                    readbytes = chunk.file.read(1024*1024*10)
                     if readbytes:
                         fout.write(readbytes)
                     else:

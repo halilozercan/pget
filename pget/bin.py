@@ -1,23 +1,34 @@
 import sys
 
 import signal
-from ParallelDownload import Downloader
+from downloader import Downloader
+
+
+def readable_bytes(num, suffix='B'):
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f %s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
 def download_callback(downloader):
-    sys.stdout.write("\rDownloading\t%s\t[%s]\t[%s]\t%s\t%s" %
-                     (downloader.file_name, 100 * (float(downloader.total_downloaded) / downloader.total_length),
-                      downloader.readable_speed, downloader.total_downloaded, downloader.total_length))
+    sys.stdout.write("\rDownloading %s [%s%%] [%s/sec] %s %s" %
+                     (downloader.file_name,
+                      round(100 * (float(downloader.total_downloaded) / downloader.total_length), 2),
+                      downloader.readable_speed,
+                      readable_bytes(downloader.total_downloaded),
+                      readable_bytes(downloader.total_length)))
     sys.stdout.flush()
 
 
 def run(argv):
 
     def handler(signum, frame):
-        if signum == signal.SIGKILL:
-            print 'SIGKILL'
-        elif signum == signal.SIGSTOP:
-            print 'SIGSTOP'
+        if signum == signal.SIGTERM:
+            print '\nTerminated'
+        elif signum == signal.SIGINT:
+            print '\nInterrupted'
         downloader.stop()
 
     if len(argv) == 4:
@@ -32,12 +43,10 @@ def run(argv):
 
     downloader.start()
 
-    signal.signal(signal.SIGKILL, handler)
-    signal.signal(signal.SIGSTOP, handler)
+    signal.signal(signal.SIGTERM, handler)
+    signal.signal(signal.SIGINT, handler)
 
     downloader.wait_for_finish()
-
-    print "\n", downloader.total_downloaded, downloader.total_length
 
 
 def main():
