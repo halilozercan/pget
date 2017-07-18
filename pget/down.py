@@ -13,10 +13,10 @@ from chunk import Chunk
 
 def readable_bytes(num, suffix='B'):
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
-        if abs(num) < 1024.0:
-            return "%3.1f %s%s" % (num, unit, suffix)
+        if abs(num) < 1000.0:
+            return "{:5.1f} {}{}".format(num, unit, suffix)
         num /= 1024.0
-    return "%.1f%s%s" % (num, 'Yi', suffix)
+    return "{:5.1f} {}{}".format(num, 'Yi', suffix)
 
 
 class Downloader:
@@ -131,6 +131,8 @@ class Downloader:
         self.__state = Downloader.DOWNLOADING
 
         r = requests.get(self.url, stream=True)
+        if r.status_code != 200:
+            raise RuntimeError('Could not connect to given URL')
         try:
             self.total_length = int(r.headers.get('content-length'))
         except:

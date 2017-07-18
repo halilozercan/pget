@@ -52,7 +52,6 @@ class Chunk:
             else:
                 r = requests.get(self.url, stream=True,
                                  headers={"Range": "bytes=" + str(self.start_byte) + "-" + str(self.end_byte)})
-
                 self.total_length = int(r.headers.get("content-length"))
 
         break_flag = False
