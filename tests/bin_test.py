@@ -1,10 +1,11 @@
+from __future__ import unicode_literals
 from mock import patch
 
-from ParallelDownload.bin import main
+from pget.bin import main
 
 
-@patch("ParallelDownload.bin.sys")
-@patch("__builtin__.print")
+@patch("pget.bin.sys")
+@patch("builtins.print")
 def test_main(printer, fake_sys):
-    fake_sys.argv = ['pdownload', "http://halilibo.com/filez/i/oqwJ2Sx.gif", "dealwithit.gif", 4]
+    fake_sys.argv = ['pdownload', 'http://halilibo.com/filez/i/StfyyS6.mp4', 'video.mp4', '-C', '8']
     main()

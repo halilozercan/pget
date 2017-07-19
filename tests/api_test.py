@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 # Remain to be filled with test cases.
 from pget import Downloader
 
