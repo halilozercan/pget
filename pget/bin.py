@@ -76,7 +76,7 @@ def run(argv):
     parser.add_argument('filename', type=str, metavar='filename.txt', help='File name')
     # parser.add_argument('--header', '-H', action='append', dest='headers')
     parser.add_argument('--chunks', '-C', dest='chunks', type=int, default=8, help='Chunk count')
-    parser.add_argument('--highspeed', '-F', dest='high_speed', type=bool, default=False,
+    parser.add_argument('--highspeed', '-F', dest='high_speed', default=False,
                         const=True, help='Chunk count', action='store_const')
 
     args = parser.parse_args(argv[1:])
