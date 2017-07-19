@@ -35,6 +35,7 @@ class Downloader:
 
         self.total_length = 0
         self.total_downloaded = 0
+        self.total_merged = 0
         self.__chunks = []
 
         self.last_total = 0
@@ -68,6 +69,9 @@ class Downloader:
         for sub in self.__subs:
             if self.speed > (sub[1] * 1024) or force:
                 sub[0](self)
+
+    def get_state(self):
+        return self.__state
 
     def speed_func(self):
         while self.__state != Downloader.STOPPED and self.__state != Downloader.MERGING:
@@ -183,8 +187,10 @@ class Downloader:
                 chunk.file.seek(0)
                 while True:
                     readbytes = chunk.file.read(1024*1024*10)
+                    self.total_merged += len(readbytes)
                     if readbytes:
                         fout.write(readbytes)
+                        self.notify_subs(force=True)
                     else:
                         break
                 chunk.file.close()
