@@ -11,18 +11,24 @@ class Chunk:
     FINISHED = 3
     STOPPED = 4
 
-    def __init__(self, downloader, url="", start_byte=-1, end_byte=-1, file="downloaded", number=-1):
+    def __init__(self, downloader, url="", start_byte=-1, end_byte=-1, file="downloaded", number=-1,
+                 high_speed=False):
         self.url = url
         self.start_byte = start_byte
         self.end_byte = end_byte
         self.file = file
         self.number = number
         self.downloader = downloader
+        self.high_speed = high_speed
 
         self.__state = Chunk.INIT
 
         self.progress = 0
         self.total_length = 0
+        if self.high_speed:
+            self.download_iter_size = 1024*512  # Half a megabyte
+        else:
+            self.download_iter_size = 1024  # a kilobyte
 
     def start(self):
         self.thread = threading.Thread(target=self.run)
@@ -55,7 +61,7 @@ class Chunk:
                 self.total_length = int(r.headers.get("content-length"))
 
         break_flag = False
-        for part in r.iter_content(chunk_size=1024):
+        for part in r.iter_content(chunk_size=self.download_iter_size):
             self.progress += len(part)
             if part and self.__state != Chunk.STOPPED:  # filter out keep-alive new chunks
                 self.file.write(part)

@@ -28,10 +28,11 @@ class Downloader:
     FINISHED = 4
     STOPPED = 5
 
-    def __init__(self, url, file_name, chunk_count):
+    def __init__(self, url, file_name, chunk_count, high_speed=False):
         self.url = url
         self.file_name = file_name
         self.chunk_count = chunk_count
+        self.high_speed = high_speed
 
         self.total_length = 0
         self.total_downloaded = 0
@@ -146,7 +147,7 @@ class Downloader:
 
         if self.chunk_count == 0:
             chunk_file = tempfile.TemporaryFile()
-            new_chunk = Chunk(self, self.url, file=chunk_file)
+            new_chunk = Chunk(self, self.url, file=chunk_file, high_speed=self.high_speed)
             self.__chunks.append(new_chunk)
             new_chunk.start()
         else:
@@ -157,10 +158,10 @@ class Downloader:
 
                 if chunk_number != self.chunk_count - 1:
                     new_chunk = Chunk(self, self.url, chunk_number * chunk_size, ((chunk_number + 1) * chunk_size) - 1,
-                                      chunk_file, chunk_number)
+                                      chunk_file, chunk_number, high_speed=self.high_speed)
                 else:
                     new_chunk = Chunk(self, self.url, chunk_number * chunk_size, self.total_length - 1,
-                                      chunk_file, chunk_number)
+                                      chunk_file, chunk_number, high_speed=self.high_speed)
 
                 self.__chunks.append(new_chunk)
                 new_chunk.start()
