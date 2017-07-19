@@ -1,17 +1,25 @@
+from __future__ import print_function
+from __future__ import unicode_literals
+
+import logging
 import threading
 import warnings
+from builtins import object
+from builtins import str
 
 import requests
 
+logger = logging.getLogger(__name__)
 
-class Chunk:
+
+class Chunk(object):
     INIT = 0
     DOWNLOADING = 1
     PAUSED = 2
     FINISHED = 3
     STOPPED = 4
 
-    def __init__(self, downloader, url="", start_byte=-1, end_byte=-1, file="downloaded", number=-1,
+    def __init__(self, downloader, url, file, start_byte=-1, end_byte=-1, number=-1,
                  high_speed=False):
         self.url = url
         self.start_byte = start_byte
@@ -45,10 +53,10 @@ class Chunk:
 
     def resume(self):
         if self.__state == Chunk.PAUSED:
-            print self.__paused_request
+            logger.debug(self.__paused_request)
             self.thread = threading.Thread(target=self.run, kwargs={'r': self.__paused_request})
             self.thread.start()
-            print "chunk thread started"
+            logger.debug("chunk thread started")
 
     def run(self, r=None):
         self.__state = Chunk.DOWNLOADING

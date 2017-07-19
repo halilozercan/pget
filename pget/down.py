@@ -1,14 +1,21 @@
-import sys
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+import logging
 import tempfile
 import threading
-
 import time
 import warnings
+from builtins import object
+from builtins import range
 
 import requests
-import shutil
 
-from chunk import Chunk
+from .chunk import Chunk
+
+logger = logging.getLogger(__name__)
 
 
 def readable_bytes(num, suffix='B'):
@@ -19,7 +26,7 @@ def readable_bytes(num, suffix='B'):
     return "{:5.1f} {}{}".format(num, 'Yi', suffix)
 
 
-class Downloader:
+class Downloader(object):
     # States
     INIT = 0
     DOWNLOADING = 1
@@ -117,7 +124,7 @@ class Downloader:
     def resume(self):
         if self.__state != Downloader.PAUSED:
             warnings.warn("Resume is not applicable at this stage.")
-            print "Resume is not applicable at this stage."
+            logger.warn("Resume is not applicable at this stage.")
             return
         for chunk in self.__chunks:
             chunk.resume()
@@ -142,8 +149,9 @@ class Downloader:
             self.total_length = int(r.headers.get('content-length'))
         except:
             self.chunk_count = 0
-            warnings.warn('This url does not support parallel downloading. Normal download will continue.',
-                          RuntimeWarning)
+            warnings.warn(
+                'This url does not support parallel downloading. Normal download will continue.',
+                RuntimeWarning)
 
         if self.chunk_count == 0:
             chunk_file = tempfile.TemporaryFile()
@@ -157,11 +165,19 @@ class Downloader:
                 chunk_file = tempfile.TemporaryFile()
 
                 if chunk_number != self.chunk_count - 1:
-                    new_chunk = Chunk(self, self.url, chunk_number * chunk_size, ((chunk_number + 1) * chunk_size) - 1,
-                                      chunk_file, chunk_number, high_speed=self.high_speed)
+                    new_chunk = Chunk(
+                        self, self.url, chunk_file,
+                        start_byte=chunk_number * chunk_size,
+                        end_byte=((chunk_number + 1) * chunk_size) - 1,
+                        number=chunk_number,
+                        high_speed=self.high_speed)
                 else:
-                    new_chunk = Chunk(self, self.url, chunk_number * chunk_size, self.total_length - 1,
-                                      chunk_file, chunk_number, high_speed=self.high_speed)
+                    new_chunk = Chunk(
+                        self, self.url, chunk_file,
+                        start_byte=chunk_number * chunk_size,
+                        end_byte=self.total_length - 1,
+                        number=chunk_number,
+                        high_speed=self.high_speed)
 
                 self.__chunks.append(new_chunk)
                 new_chunk.start()
@@ -187,7 +203,7 @@ class Downloader:
                 # Go to first byte of temporary file
                 chunk.file.seek(0)
                 while True:
-                    readbytes = chunk.file.read(1024*1024*10)
+                    readbytes = chunk.file.read(1024 * 1024 * 10)
                     self.total_merged += len(readbytes)
                     if readbytes:
                         fout.write(readbytes)

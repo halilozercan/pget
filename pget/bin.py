@@ -1,12 +1,20 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import argparse
+import logging
 import os
+import signal
 import sys
 
-import signal
-import down
-from down import Downloader
+from . import down
+from .log import setup_logging
+from .down import Downloader
 
 first_summary_flag = False
+logger = logging.getLogger(__name__)
 
 
 def download_callback(downloader):
@@ -14,9 +22,10 @@ def download_callback(downloader):
 
     if not first_summary_flag:
         sys.stdout.write("\nDownload URL: {}\n".format(downloader.url))
-        sys.stdout.write("\nSaving to: {}\n".format(os.path.join(os.getcwd(), downloader.file_name)))
-        sys.stdout.write("\nTotal Length: {} bytes - {}\n\n".format(downloader.total_length,
-                                                                    down.readable_bytes(downloader.total_length)))
+        sys.stdout.write(
+            "\nSaving to: {}\n".format(os.path.join(os.getcwd(), downloader.file_name)))
+        sys.stdout.write("\nTotal Length: {} bytes - {}\n\n".format(
+            downloader.total_length, down.readable_bytes(downloader.total_length)))
         first_summary_flag = True
 
     from pget import term
@@ -66,13 +75,14 @@ def download_callback(downloader):
 def run(argv):
     def handler(signum, frame):
         if signum == signal.SIGTERM:
-            print '\nTerminated'
+            logger.info('Terminated')
         elif signum == signal.SIGINT:
-            print '\nInterrupted'
+            logger.info('Interrupted')
         downloader.stop()
 
     parser = argparse.ArgumentParser(description='PGet - A tool for fast downloads')
-    parser.add_argument('url', type=str, metavar='http://filedownload.url/path?args=given', help='File URL')
+    parser.add_argument('url', type=str, metavar='http://filedownload.url/path?args=given',
+                        help='File URL')
     parser.add_argument('filename', type=str, metavar='filename.txt', help='File name')
     # parser.add_argument('--header', '-H', action='append', dest='headers')
     parser.add_argument('--chunks', '-C', dest='chunks', type=int, default=8, help='Chunk count')
@@ -93,6 +103,7 @@ def run(argv):
 
 
 def main():
+    setup_logging(enabled=True)
     if sys.stdin.isatty():
         run(sys.argv)
     else:

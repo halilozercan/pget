@@ -15,6 +15,6 @@ setup(
             'pget = pget.bin:main',
         ],
     },
-    install_requires=['requests', 'wheel'],
+    install_requires=['future', 'requests', 'wheel'],
     packages=find_packages(exclude=("tests", "tests.*")),
 )
