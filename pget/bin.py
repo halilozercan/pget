@@ -50,7 +50,7 @@ def download_callback(downloader):
                                                       down.readable_bytes(downloader.total_length))
         if len(written_update) < term_width * 3 / 4:
             fill_in_area = term_width - (len(written_update) + 3)
-            done = int((downloader.total_merged / downloader.total_length) * fill_in_area) * '='
+            done = int((downloader.total_merged * fill_in_area) / downloader.total_length) * '='
             remaining = (fill_in_area - len(done)) * ' '
             written_update += ' [{}{}]'.format(done, remaining)
         else:
