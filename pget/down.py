@@ -146,7 +146,9 @@ class Downloader(object):
         if r.status_code != 200:
             raise RuntimeError('Could not connect to given URL')
         try:
-            self.total_length = int(r.headers.get('content-length'))
+            self.total_length = int(r.headers.get('Content-Length'))
+            if r.headers.get('Accept-Ranges') != 'bytes':
+                raise RuntimeError('URL does not support ranged requests.')
         except:
             self.chunk_count = 0
             warnings.warn(

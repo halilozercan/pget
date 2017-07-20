@@ -22,8 +22,8 @@ class Chunk(object):
     def __init__(self, downloader, url, file, start_byte=-1, end_byte=-1, number=-1,
                  high_speed=False):
         self.url = url
-        self.start_byte = start_byte
-        self.end_byte = end_byte
+        self.start_byte = int(start_byte)
+        self.end_byte = int(end_byte)
         self.file = file
         self.number = number
         self.downloader = downloader
