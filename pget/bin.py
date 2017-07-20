@@ -81,13 +81,12 @@ def run(argv):
         downloader.stop()
 
     parser = argparse.ArgumentParser(description='PGet - A tool for fast downloads')
-    parser.add_argument('url', type=str, metavar='http://filedownload.url/path?args=given',
-                        help='File URL')
-    parser.add_argument('filename', type=str, metavar='filename.txt', help='File name')
+    parser.add_argument('url', type=str, help='File URL')
+    parser.add_argument('filename', type=str, help='File name')
     # parser.add_argument('--header', '-H', action='append', dest='headers')
     parser.add_argument('--chunks', '-C', dest='chunks', type=int, default=8, help='Chunk count')
     parser.add_argument('--highspeed', '-F', dest='high_speed', default=False,
-                        const=True, help='Chunk count', action='store_const')
+                        const=True, help='High speed connection flag', action='store_const')
 
     args = parser.parse_args(argv[1:])
     downloader = Downloader(args.url, args.filename, args.chunks, args.high_speed)
