@@ -4,12 +4,12 @@ from setuptools import find_packages
 
 setup(
     name='PGet',
-    version='0.4.1',
+    version='0.5.0',
     description='A tool and library to save large files by creating multiple connections.',
     author='Halil Ozercan',
     author_email='halilozercan@gmail.com',
     url='https://github.com/halilozercan/pget',
-    download_url='https://github.com/halilozercan/pget/tarball/0.4.1',
+    download_url='https://github.com/halilozercan/pget/tarball/0.5.0',
     entry_points={
         'console_scripts': [
             'pget = pget.bin:main',

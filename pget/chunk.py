@@ -4,8 +4,6 @@ from __future__ import unicode_literals
 import logging
 import threading
 import warnings
-from builtins import object
-from builtins import str
 
 import requests
 
@@ -20,7 +18,7 @@ class Chunk(object):
     STOPPED = 4
 
     def __init__(self, downloader, url, file, start_byte=-1, end_byte=-1, number=-1,
-                 high_speed=False):
+                 high_speed=False, headers=None):
         self.url = url
         self.start_byte = int(start_byte)
         self.end_byte = int(end_byte)
@@ -28,6 +26,9 @@ class Chunk(object):
         self.number = number
         self.downloader = downloader
         self.high_speed = high_speed
+        if headers is None:
+            headers = {}
+        self.headers = headers
 
         self.__state = Chunk.INIT
 
@@ -62,10 +63,12 @@ class Chunk(object):
         self.__state = Chunk.DOWNLOADING
         if r is None:
             if self.start_byte == -1 and self.end_byte == -1:
-                r = requests.get(self.url, stream=True)
+                r = requests.get(self.url, stream=True, headers=self.headers)
             else:
-                r = requests.get(self.url, stream=True,
-                                 headers={"Range": "bytes=" + str(self.start_byte) + "-" + str(self.end_byte)})
+                self.headers['Range'] = "bytes=" + str(self.start_byte) + "-" + str(self.end_byte)
+                if 'range' in self.headers:
+                    del self.headers['range']
+                r = requests.get(self.url, stream=True, headers=self.headers)
                 self.total_length = int(r.headers.get("content-length"))
 
         break_flag = False
