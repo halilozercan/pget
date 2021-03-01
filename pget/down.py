@@ -138,7 +138,7 @@ class Downloader(object):
 
     def wait_for_finish(self):
         if self.__async:
-            while self.thread.isAlive():
+            while self.thread.is_alive():
                 continue
             self.thread.join()
         else:
