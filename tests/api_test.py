@@ -1,8 +1,4 @@
-from __future__ import unicode_literals
-# Remain to be filled with test cases.
 from pget import Downloader
-
-import sys
 
 
 def sha1sum(file_name):
@@ -21,7 +17,10 @@ def sha1sum(file_name):
     return sha1.hexdigest()
 
 
-downloader = Downloader('http://halilibo.com/filez/i/StfyyS6.mp4', 'video.mp4', 8)
-downloader.start_sync()
+Downloader(
+    'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    'BigBuckBunny.mp4',
+    8
+).start_sync()
 
-assert sha1sum('video.mp4') == '5298b02a64cb4ed7cc6e617b0cc2f0b4b36afb6a'
+assert sha1sum('BigBuckBunny.mp4') == 'b29ae9b33d33304b3b966f2921cc5bfb3cb3c3ce'

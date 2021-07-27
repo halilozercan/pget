@@ -1,9 +1,3 @@
-""" getTerminalSize()
- - get width and height of console
- - works on linux,os x,windows,cygwin(windows)
-
- Borrowed from https://stackoverflow.com/a/6550596
-"""
 from __future__ import print_function
 from __future__ import unicode_literals
 
@@ -16,6 +10,12 @@ logger = logging.getLogger(__name__)
 
 
 def getTerminalSize():
+    """ getTerminalSize()
+     - get width and height of console
+     - works on linux,os x,windows,cygwin(windows)
+
+     Borrowed from https://stackoverflow.com/a/6550596
+    """
     import platform
     current_os = platform.system()
     tuple_xy = None

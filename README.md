@@ -1,3 +1,8 @@
+# Deprecated
+
+I've abandon this project almost 3 years ago when I also stopped writing Python. Please use tools like curl, aria2, wget for file downloads over terminal.
+Please consider using requests library as a Python package alternative.
+
 # PGet
 
 pget offers a simple yet functional API that enables you to save large files from bandwidth limited servers such as Google Drive, Yandex Disk, etc.
@@ -22,7 +27,7 @@ python setup.py install
 
 ## Usage
 
-Pget is essentially designed to be a python module but it also provides a nice executable to cater your download needs quickly.
+Pget is essentially designed to be a python module, but it also provides a nice executable to cater your download needs quickly.
 
 ```
 PGet - A tool for fast downloads
@@ -60,8 +65,3 @@ downloader.wait_for_finish()
 - by using subscribe, we get a callback from downloader whenever `callback_threshold` kilobytes of data is downloaded.
 - start and wait_for_finish is like starting a thread and waiting to join. You can also run pget downloader in sync mod by `start_sync()`
 - During the download, downloader object is updated regularly. So you can use it to get feedback in your application.
-
-## TODO
-
-In the near future, I will add custom headers option. That's because most download services require cookies to let you download.
-Also they check if you are using a valid browser by looking at User-Agent header.

@@ -1,2 +1,2 @@
-requests==2.20.0
-wheel==0.29.0
+requests==2.26.0
+wheel==0.36.2
