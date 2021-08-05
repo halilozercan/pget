@@ -28,7 +28,7 @@ class Downloader(object):
     FINISHED = 4
     STOPPED = 5
 
-    def __init__(self, url, file_name, chunk_count, high_speed=False, headers=None):
+    def __init__(self, url, file_name, chunk_count, high_speed=False, headers=None, params=None):
         self.url = url
         self.file_name = file_name
         self.chunk_count = chunk_count
@@ -40,6 +40,13 @@ class Downloader(object):
             key = header.split(':')[0].strip()
             value = header.split(':')[1].strip()
             self.headers[key] = value
+        if params is None:
+            params = []
+        self.params = {}
+        for param in params:
+            key = param.split(':')[0].strip()
+            value = param.split(':')[1].strip()
+            self.params[key] = value
 
         self.total_length = 0
         self.total_downloaded = 0
@@ -142,7 +149,7 @@ class Downloader(object):
     def run(self):
         self.__state = Downloader.DOWNLOADING
 
-        r = requests.get(self.url, stream=True, headers=self.headers)
+        r = requests.get(self.url, stream=True, headers=self.headers, params=self.params)
         if r.status_code != 200:
             raise RuntimeError('Could not connect to given URL')
         try:
@@ -157,7 +164,7 @@ class Downloader(object):
 
         if self.chunk_count == 0:
             chunk_file = tempfile.TemporaryFile()
-            new_chunk = Chunk(self, self.url, file=chunk_file, high_speed=self.high_speed, headers=self.headers)
+            new_chunk = Chunk(self, self.url, file=chunk_file, high_speed=self.high_speed, headers=self.headers, params=self.params)
             self.__chunks.append(new_chunk)
             new_chunk.start()
         else:
@@ -173,7 +180,8 @@ class Downloader(object):
                         end_byte=((chunk_number + 1) * chunk_size) - 1,
                         number=chunk_number,
                         high_speed=self.high_speed,
-                        headers=self.headers)
+                        headers=self.headers,
+                        params=self.params)
                 else:
                     new_chunk = Chunk(
                         self, self.url, chunk_file,
@@ -181,7 +189,8 @@ class Downloader(object):
                         end_byte=self.total_length - 1,
                         number=chunk_number,
                         high_speed=self.high_speed,
-                        headers=self.headers)
+                        headers=self.headers,
+                        params=self.params)
 
                 self.__chunks.append(new_chunk)
                 new_chunk.start()

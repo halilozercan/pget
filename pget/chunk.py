@@ -15,7 +15,7 @@ class Chunk(object):
     STOPPED = 4
 
     def __init__(self, downloader, url, file, start_byte=-1, end_byte=-1, number=-1,
-                 high_speed=False, headers=None):
+                 high_speed=False, headers=None, params=None):
         self.url = url
         self.start_byte = int(start_byte)
         self.end_byte = int(end_byte)
@@ -26,6 +26,9 @@ class Chunk(object):
         if headers is None:
             headers = {}
         self.headers = headers
+        if params is None:
+            params = {}
+        self.params = params
 
         self.__state = Chunk.INIT
 
@@ -60,12 +63,12 @@ class Chunk(object):
         self.__state = Chunk.DOWNLOADING
         if r is None:
             if self.start_byte == -1 and self.end_byte == -1:
-                r = requests.get(self.url, stream=True, headers=self.headers)
+                r = requests.get(self.url, stream=True, headers=self.headers, params=self.params)
             else:
                 self.headers['Range'] = "bytes=" + str(self.start_byte) + "-" + str(self.end_byte)
                 if 'range' in self.headers:
                     del self.headers['range']
-                r = requests.get(self.url, stream=True, headers=self.headers)
+                r = requests.get(self.url, stream=True, headers=self.headers, params=self.params)
                 self.total_length = int(r.headers.get("content-length"))
 
         break_flag = False
