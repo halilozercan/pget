@@ -5,8 +5,8 @@ import signal
 import sys
 
 from . import down
-from .log import setup_logging
 from .down import Downloader
+from .log import setup_logging
 
 first_summary_flag = False
 logger = logging.getLogger(__name__)
@@ -84,9 +84,11 @@ def run(argv):
                         const=True, help='High speed connection flag', action='store_const')
     parser.add_argument('-H', '--header', dest='headers', metavar='HeaderKey: HeaderValue',
                         help='Add a HTTP Header for download connection', action='append')
+    parser.add_argument('-P', '--params', dest='params', metavar='ParamKey: ParamValue',
+                        help='Add Parameters for download connection', action='append')
 
     args = parser.parse_args(argv[1:])
-    downloader = Downloader(args.url, args.filename, args.chunks, args.high_speed, args.headers)
+    downloader = Downloader(args.url, args.filename, args.chunks, args.high_speed, args.headers, args.params)
 
     downloader.subscribe(download_callback, 256)
 
