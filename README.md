@@ -1,7 +1,7 @@
 # Deprecated
 
-I've abandon this project almost 3 years ago when I also stopped writing Python. Please use tools like curl, aria2, wget for file downloads over terminal.
-Please consider using requests library as a Python package alternative.
+I abandoned this project almost 3 years ago when I also stopped using Python. Please use tools like curl, aria2, wget for file downloads using CLI.
+Also consider using `requests` library as a Python package alternative.
 
 # PGet
 
